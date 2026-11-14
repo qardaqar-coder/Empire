@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ka" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>სეიფი — პერსონალური აპ-ორგანაიზერი</title>
+    
+    <!-- Google Fonts: Noto Sans Georgian -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans Georgian"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-[#0a0a0a] text-white font-sans antialiased min-h-screen flex flex-col selection:bg-[#10b981]/30 selection:text-[#10b981] overflow-x-hidden">
+
+    <!-- Toast Notification Container (Replaces alert/confirm) -->
+    <div id="toast-container" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-max max-w-[90vw]"></div>
+
+    <!-- Top Navigation Bar (Strictly 3 elements: Left '+', Center Search, Right '+') -->
+    <header class="sticky top-0 z-30 bg-[#0a0a0a]/90 backdrop-blur-xl border-b border-[#1f1f1f]">
+        <div class="max-w-4xl mx-auto px-3 sm:px-5 h-16 flex items-center gap-2.5 sm:gap-4">
+            
+            <!-- 1. Left '+' Button: Creates Category / Subfolder -->
+            <button 
+                onclick="openCategoryModal()" 
+                title="ახალი კატეგორია"
+                aria-label="ახალი კატეგორია"
+                class="w-11 h-11 shrink-0 rounded-2xl bg-[#121212] hover:bg-[#181818] active:scale-95 border border-[#1f1f1f] hover:border-[#10b981]/50 flex items-center justify-center text-white hover:text-[#10b981] transition-all shadow-sm"
+            >
+                <svg class="w-5 h-5 stroke-[2.2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+                </svg>
+            </button>
+
+            <!-- 2. Center Search Input -->
+            <div class="relative flex-1">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"></path>
+                    </svg>
+                </div>
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    oninput="handleSearch(this.value)"
+                    placeholder="ძიება..." 
+                    autocomplete="off"
+                    class="w-full h-11 pl-10 pr-
