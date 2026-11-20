@@ -1,1234 +1,1187 @@
 <!DOCTYPE html>
-<html lang="ka" class="dark">
+<html lang="ka">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>სეიფი — პერსონალური აპ-ორგანაიზერი</title>
-    
-    <!-- Google Fonts: Noto Sans Georgian -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Noto Sans Georgian"', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>იმპერია — ვიზუალური ბუქმარქები</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- LZ-String URL-ში მონაცემების კომპაქტურად ჩასაწერად -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+  <!-- Google Fonts: Noto Sans Georgian & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Georgian:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-primary: #0e110f;
+      --bg-card: #181c19;
+      --bg-card-hover: #1f2420;
+      --bg-input: #161a17;
+      --border-subtle: #252b27;
+      --text-primary: #f1f5f2;
+      --text-secondary: #8c968e;
+      --accent-green: #10b981;
+      --pill-bg: #1e2320;
+      --modal-backdrop: rgba(0, 0, 0, 0.78);
+    }
+
+    html.light-theme {
+      --bg-primary: #f4f6f4;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f9fbf9;
+      --bg-input: #ffffff;
+      --border-subtle: #dfe5e0;
+      --text-primary: #141a16;
+      --text-secondary: #5c6860;
+      --accent-green: #059669;
+      --pill-bg: #eef2ef;
+      --modal-backdrop: rgba(15, 23, 18, 0.45);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Noto Sans Georgian', 'Inter', sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      transition: background-color 0.25s ease, color 0.25s ease;
+      overflow-x: hidden;
+    }
+
+    .theme-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      transition: transform 0.16s ease, background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .theme-card:active {
+      transform: scale(0.97);
+    }
+
+    .theme-input {
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+    }
+
+    .theme-input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .theme-pill {
+      background-color: var(--pill-bg);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+    }
+
+    /* დინამიური ბადე: 4, 3 ან 2 კვადრატი სიგანეზე */
+    .imperia-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .imperia-grid.cols-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .imperia-grid.cols-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    @media (min-width: 768px) {
+      .imperia-grid {
+        max-width: 760px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    }
+
+    /* კვადრატული ბარათი */
+    .square-box {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .cols-2 .square-box {
+      border-radius: 24px;
+    }
+
+    /* ფერადი შიდა ჩრდილი ფოლდერისთვის */
+    .folder-glow {
+      width: 54%;
+      height: 54%;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ტოსტ შეტყობინება */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background-color: #10b981;
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+      z-index: 100;
+      opacity: 0;
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
 </head>
-<body class="bg-[#0a0a0a] text-white font-sans antialiased min-h-screen flex flex-col selection:bg-[#10b981]/30 selection:text-[#10b981] overflow-x-hidden">
+<body class="min-h-screen pb-20">
 
-    <!-- Toast Notification Container (Replaces alert/confirm) -->
-    <div id="toast-container" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-max max-w-[90vw]"></div>
+  <!-- ზედა პანელი (Top Bar) -->
+  <header class="sticky top-0 z-30 backdrop-blur-md bg-opacity-90 px-3 pt-3 pb-2.5 border-b border-transparent" style="background-color: color-mix(in srgb, var(--bg-primary) 88%, transparent);">
+    <div class="max-w-[760px] mx-auto flex items-center gap-2">
+      <!-- მარცხენა + ღილაკი -->
+      <button onclick="openCreateModal()" title="დამატება" class="theme-card w-10 h-10 rounded-full flex items-center justify-center shrink-0 cursor-pointer hover:border-emerald-500/50">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+      </button>
 
-    <!-- Top Navigation Bar (Strictly 3 elements: Left '+', Center Search, Right '+') -->
-    <header class="sticky top-0 z-30 bg-[#0a0a0a]/90 backdrop-blur-xl border-b border-[#1f1f1f]">
-        <div class="max-w-4xl mx-auto px-3 sm:px-5 h-16 flex items-center gap-2.5 sm:gap-4">
-            
-            <!-- 1. Left '+' Button: Creates Category / Subfolder -->
-            <button 
-                onclick="openCategoryModal()" 
-                title="ახალი კატეგორია"
-                aria-label="ახალი კატეგორია"
-                class="w-11 h-11 shrink-0 rounded-2xl bg-[#121212] hover:bg-[#181818] active:scale-95 border border-[#1f1f1f] hover:border-[#10b981]/50 flex items-center justify-center text-white hover:text-[#10b981] transition-all shadow-sm"
-            >
-                <svg class="w-5 h-5 stroke-[2.2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
-                </svg>
-            </button>
+      <!-- გაზიარების / ლინკის კოპირების ღილაკი -->
+      <button onclick="copyShareLink()" title="იმპერიის ლინკის კოპირება" class="theme-card w-10 h-10 rounded-full flex items-center justify-center shrink-0 cursor-pointer hover:border-emerald-500/50 text-emerald-500">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+        </svg>
+      </button>
 
-            <!-- 2. Center Search Input -->
-            <div class="relative flex-1">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"></path>
-                    </svg>
-                </div>
-                <input 
-                    type="text" 
-                    id="search-input" 
-                    oninput="handleSearch(this.value)"
-                    placeholder="ძიება..." 
-                    autocomplete="off"
-                    class="w-full h-11 pl-10 pr-9 bg-[#121212] border border-[#1f1f1f] focus:border-[#10b981]/60 rounded-2xl text-sm text-white placeholder-neutral-500 focus:outline-none transition-colors"
-                >
-                <button 
-                    id="clear-search-btn" 
-                    onclick="clearSearch()" 
-                    aria-label="ძიების გასუფთავება"
-                    class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-500 hover:text-white"
-                >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
+      <!-- შუა ძიების ველი -->
+      <div class="relative flex-1 min-w-0">
+        <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style="color: var(--text-secondary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input
+          id="searchInput"
+          type="text"
+          oninput="handleSearch(this.value)"
+          placeholder="ძიება..."
+          class="theme-input w-full h-10 pl-9 pr-3 rounded-full text-sm focus:outline-none focus:border-emerald-500 transition-colors"
+        />
+      </div>
 
-            <!-- 3. Right '+' Button: Adds Link / Video / Content -->
-            <button 
-                onclick="openItemModal()" 
-                title="ახალი ბმული / ვიდეო"
-                aria-label="ახალი ბმული / ვიდეო"
-                class="w-11 h-11 shrink-0 rounded-2xl bg-[#121212] hover:bg-[#181818] active:scale-95 border border-[#1f1f1f] hover:border-[#10b981]/50 flex items-center justify-center text-[#10b981] transition-all shadow-sm"
-            >
-                <svg class="w-5 h-5 stroke-[2.2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
-                </svg>
-            </button>
+      <!-- ბადის ზომის გადამრთველი (4 -> 3 -> 2 კვადრატი) -->
+      <button onclick="cycleGridCols()" id="gridToggleBtn" title="კვადრატების ზომის შეცვლა (4 / 3 / 2)" class="theme-card h-10 px-2.5 rounded-full flex items-center justify-center gap-1 shrink-0 cursor-pointer text-xs font-semibold hover:border-emerald-500/50">
+        <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+          <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+          <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+        </svg>
+        <span id="gridColLabel">4</span>
+      </button>
 
-        </div>
+      <!-- დღის და ღამის რეჟიმის გადამრთველი -->
+      <button onclick="toggleTheme()" id="themeToggleBtn" title="დღის / ღამის რეჟიმი" class="theme-card w-10 h-10 rounded-full flex items-center justify-center shrink-0 cursor-pointer hover:border-emerald-500/50">
+        <!-- მზის აიქონი (ჩანს ღამის რეჟიმში) -->
+        <svg id="sunIcon" class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"></path>
+        </svg>
+        <!-- მთვარის აიქონი (ჩანს დღის რეჟიმში) -->
+        <svg id="moonIcon" class="w-4 h-4 text-slate-700 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+        </svg>
+      </button>
 
-        <!-- Sub-header Breadcrumb Navigation (Visible only inside a category/folder) -->
-        <div id="breadcrumb-bar" class="hidden border-t border-[#1f1f1f]/70 bg-[#0a0a0a]/95">
-            <div class="max-w-4xl mx-auto px-3 sm:px-5 py-2.5 flex items-center gap-2 overflow-x-auto whitespace-nowrap">
-                <button 
-                    onclick="navigateUp()" 
-                    title="უკან დაბრუნება"
-                    class="inline-flex items-center justify-center w-7 h-7 rounded-xl bg-[#141414] hover:bg-[#1e1e1e] border border-[#1f1f1f] text-neutral-300 hover:text-[#10b981] transition-colors shrink-0"
-                >
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"></path>
-                    </svg>
-                </button>
-                <nav id="breadcrumb-trail" class="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-neutral-400">
-                    <!-- Breadcrumb items injected dynamically -->
-                </nav>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Content Area: Smartphone Launcher App Grid -->
-    <main class="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        
-        <!-- Search Context Indicator (Only shown during active search) -->
-        <div id="search-status-bar" class="hidden mb-5 flex items-center justify-between text-xs text-neutral-400 bg-[#121212] border border-[#1f1f1f] px-3.5 py-2 rounded-xl">
-            <span>ძიების შედეგები: <strong id="search-count" class="text-white">0</strong></span>
-            <button onclick="clearSearch()" class="text-[#10b981] hover:underline">გაუქმება</button>
-        </div>
-
-        <!-- App Grid (4 columns on mobile, 5 on sm, 6 on md+) -->
-        <div id="app-grid" class="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-x-3.5 gap-y-6 sm:gap-x-5 sm:gap-y-7">
-            <!-- Square App Icons (Folders & Saved Items) injected via JS -->
-        </div>
-
-        <!-- Minimal Empty State -->
-        <div id="empty-state" class="hidden flex-col items-center justify-center text-center py-20 px-4">
-            <div class="w-16 h-16 rounded-[22px] bg-[#121212] border border-[#1f1f1f] flex items-center justify-center text-neutral-600 mb-4">
-                <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"></path>
-                </svg>
-            </div>
-            <p id="empty-state-title" class="text-sm font-medium text-neutral-300 mb-1">ეს სივრცე ცარიელია</p>
-            <p id="empty-state-sub" class="text-xs text-neutral-500 max-w-xs">მარცხენა <span class="text-white font-semibold">+</span> ღილაკით შექმენით კატეგორია, მარჯვენა <span class="text-[#10b981] font-semibold">+</span> ღილაკით კი დაამატეთ ბმული.</p>
-        </div>
-
-    </main>
-
-    <!-- ===================================================================== -->
-    <!-- MODAL 1: Left '+' Modal (New / Edit Category / Folder)                -->
-    <!-- ===================================================================== -->
-    <div id="category-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-        <div class="bg-[#111111] border border-[#1f1f1f] rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl">
-            <div class="px-5 py-4 border-b border-[#1f1f1f] flex items-center justify-between">
-                <h2 id="category-modal-title" class="text-sm font-semibold text-white">ახალი კატეგორია</h2>
-                <button onclick="closeCategoryModal()" class="p-1 text-neutral-500 hover:text-white rounded-lg transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-
-            <form id="category-form" onsubmit="saveCategory(event)" class="p-5 space-y-4">
-                <input type="hidden" id="edit-category-id">
-
-                <div>
-                    <label for="category-name-input" class="block text-xs font-medium text-neutral-400 mb-1.5">კატეგორიის სახელი</label>
-                    <input 
-                        type="text" 
-                        id="category-name-input" 
-                        required 
-                        placeholder="მაგ: პოლიტიკა" 
-                        class="w-full px-3.5 py-2.5 bg-[#0a0a0a] border border-[#1f1f1f] focus:border-[#10b981] rounded-2xl text-sm text-white placeholder-neutral-600 focus:outline-none transition-colors"
-                    >
-                </div>
-
-                <!-- Optional Accent Color -->
-                <div>
-                    <label class="block text-xs font-medium text-neutral-400 mb-2">აქცენტის ფერი</label>
-                    <div class="flex items-center gap-2.5" id="color-picker-group">
-                        <button type="button" data-color="#10b981" onclick="selectCategoryColor('#10b981')" class="color-dot w-7 h-7 rounded-full bg-[#10b981] ring-2 ring-offset-2 ring-offset-[#111111] ring-white transition-all"></button>
-                        <button type="button" data-color="#3b82f6" onclick="selectCategoryColor('#3b82f6')" class="color-dot w-7 h-7 rounded-full bg-[#3b82f6] opacity-70 hover:opacity-100 transition-all"></button>
-                        <button type="button" data-color="#f59e0b" onclick="selectCategoryColor('#f59e0b')" class="color-dot w-7 h-7 rounded-full bg-[#f59e0b] opacity-70 hover:opacity-100 transition-all"></button>
-                        <button type="button" data-color="#ec4899" onclick="selectCategoryColor('#ec4899')" class="color-dot w-7 h-7 rounded-full bg-[#ec4899] opacity-70 hover:opacity-100 transition-all"></button>
-                        <button type="button" data-color="#a855f7" onclick="selectCategoryColor('#a855f7')" class="color-dot w-7 h-7 rounded-full bg-[#a855f7] opacity-70 hover:opacity-100 transition-all"></button>
-                        <button type="button" data-color="#e5e5e5" onclick="selectCategoryColor('#e5e5e5')" class="color-dot w-7 h-7 rounded-full bg-[#e5e5e5] opacity-70 hover:opacity-100 transition-all"></button>
-                    </div>
-                    <input type="hidden" id="category-color-input" value="#10b981">
-                </div>
-
-                <div class="pt-2 flex items-center justify-end gap-2.5">
-                    <button type="button" onclick="closeCategoryModal()" class="px-4 py-2.5 text-xs font-medium text-neutral-400 hover:text-white bg-[#181818] rounded-2xl transition-colors">
-                        გაუქმება
-                    </button>
-                    <button type="submit" class="px-5 py-2.5 text-xs font-semibold text-black bg-[#10b981] hover:bg-[#34d399] rounded-2xl transition-colors">
-                        შენახვა
-                    </button>
-                </div>
-            </form>
-        </div>
+      <!-- მარჯვენა მწვანე + ღილაკი -->
+      <button onclick="openCreateModal()" title="ახლის დამატება" class="theme-card w-10 h-10 rounded-full flex items-center justify-center shrink-0 cursor-pointer text-emerald-500 hover:border-emerald-500/50">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+      </button>
     </div>
 
-    <!-- ===================================================================== -->
-    <!-- MODAL 2: Right '+' Modal (New / Edit Link / Video / Content)          -->
-    <!-- ===================================================================== -->
-    <div id="item-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-        <div class="bg-[#111111] border border-[#1f1f1f] rounded-3xl w-full max-w-sm max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div class="px-5 py-4 border-b border-[#1f1f1f] flex items-center justify-between sticky top-0 bg-[#111111] z-10">
-                <h2 id="item-modal-title" class="text-sm font-semibold text-white">ახალი ბმული</h2>
-                <button onclick="closeItemModal()" class="p-1 text-neutral-500 hover:text-white rounded-lg transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
+    <!-- ნავიგაციის პანელი (Breadcrumb / უკან დაბრუნება როცა კატეგორიაში ვართ) -->
+    <div id="breadcrumbBar" class="max-w-[760px] mx-auto mt-2.5 hidden items-center justify-between px-1">
+      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
+        <button onclick="navigateUp()" class="theme-card px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 cursor-pointer hover:border-emerald-500/50 shrink-0">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+          <span>უკან</span>
+        </button>
+        <div id="breadcrumbTrail" class="flex items-center gap-1.5 text-xs font-medium truncate" style="color: var(--text-secondary);"></div>
+      </div>
 
-            <form id="item-form" onsubmit="saveItem(event)" class="p-5 space-y-4">
-                <input type="hidden" id="edit-item-id">
+      <span id="sharedBadge" class="hidden text-[11px] px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 font-medium shrink-0">
+        გაზიარებული ლინკი
+      </span>
+    </div>
+  </header>
 
-                <!-- URL Input -->
-                <div>
-                    <label for="item-url-input" class="block text-xs font-medium text-neutral-400 mb-1.5">ბმული (URL)</label>
-                    <input 
-                        type="url" 
-                        id="item-url-input" 
-                        required 
-                        oninput="handleItemUrlChange(this.value)"
-                        placeholder="https://youtube.com/... ან სტატიის ლინკი" 
-                        class="w-full px-3.5 py-2.5 bg-[#0a0a0a] border border-[#1f1f1f] focus:border-[#10b981] rounded-2xl text-sm text-white placeholder-neutral-600 focus:outline-none transition-colors"
-                    >
-                </div>
-
-                <!-- Auto YouTube Thumbnail Preview -->
-                <div id="yt-preview-wrapper" class="hidden rounded-2xl overflow-hidden border border-[#1f1f1f] bg-black relative aspect-video">
-                    <img id="yt-preview-image" src="" alt="Preview" class="w-full h-full object-cover">
-                    <span class="absolute bottom-2 left-2 px-2 py-0.5 rounded-lg bg-black/80 text-[10px] font-medium text-[#10b981] border border-[#10b981]/30">
-                        YouTube ვიდეო
-                    </span>
-                </div>
-
-                <!-- Title Input -->
-                <div>
-                    <label for="item-title-input" class="block text-xs font-medium text-neutral-400 mb-1.5">სათაური</label>
-                    <input 
-                        type="text" 
-                        id="item-title-input" 
-                        required 
-                        placeholder="ჩაწერეთ სათაური..." 
-                        class="w-full px-3.5 py-2.5 bg-[#0a0a0a] border border-[#1f1f1f] focus:border-[#10b981] rounded-2xl text-sm text-white placeholder-neutral-600 focus:outline-none transition-colors"
-                    >
-                </div>
-
-                <!-- Optional Short Note -->
-                <div>
-                    <label for="item-note-input" class="block text-xs font-medium text-neutral-400 mb-1.5">შენიშვნა <span class="text-neutral-600">(არასავალდებულო)</span></label>
-                    <textarea 
-                        id="item-note-input" 
-                        rows="2" 
-                        placeholder="მოკლე კომენტარი..." 
-                        class="w-full px-3.5 py-2.5 bg-[#0a0a0a] border border-[#1f1f1f] focus:border-[#10b981] rounded-2xl text-sm text-white placeholder-neutral-600 focus:outline-none resize-none transition-colors"
-                    ></textarea>
-                </div>
-
-                <div class="pt-2 flex items-center justify-end gap-2.5">
-                    <button type="button" onclick="closeItemModal()" class="px-4 py-2.5 text-xs font-medium text-neutral-400 hover:text-white bg-[#181818] rounded-2xl transition-colors">
-                        გაუქმება
-                    </button>
-                    <button type="submit" class="px-5 py-2.5 text-xs font-semibold text-black bg-[#10b981] hover:bg-[#34d399] rounded-2xl transition-colors">
-                        შენახვა
-                    </button>
-                </div>
-            </form>
-        </div>
+  <!-- მთავარი კონტენტი / ბადე -->
+  <main class="px-3.5 pt-3">
+    <!-- ინფორმაციული ზოლი გაზიარებულ რეჟიმში -->
+    <div id="sharedNotice" class="max-w-[760px] mx-auto mb-3 hidden items-center justify-between gap-2 px-3.5 py-2.5 rounded-2xl theme-card text-xs">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>გახსნილია გაზიარებული იმპერია — ნებისმიერი ცვლილება ავტომატურად განაახლებს ლინკს.</span>
+      </div>
+      <button onclick="resetToBlank()" class="text-emerald-500 font-semibold hover:underline shrink-0 cursor-pointer">
+        გასუფთავება
+      </button>
     </div>
 
-    <!-- ===================================================================== -->
-    <!-- MODAL 3: Item Detail / Preview Card                                   -->
-    <!-- ===================================================================== -->
-    <div id="detail-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
-        <div class="bg-[#111111] border border-[#1f1f1f] rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl">
-            <!-- Thumbnail / Visual Header -->
-            <div id="detail-visual" class="relative w-full aspect-video bg-[#0a0a0a] border-b border-[#1f1f1f] flex items-center justify-center overflow-hidden">
-                <!-- Populated dynamically -->
-            </div>
+    <!-- ბარათების ბადე -->
+    <div id="itemsGrid" class="imperia-grid"></div>
 
-            <div class="p-5">
-                <div class="flex items-center justify-between gap-2 mb-2">
-                    <span id="detail-domain" class="text-[11px] font-mono text-[#10b981] bg-[#10b981]/10 px-2.5 py-0.5 rounded-lg border border-[#10b981]/20 truncate max-w-[200px]"></span>
-                    <button onclick="closeDetailModal()" class="p-1 text-neutral-500 hover:text-white rounded-lg">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-
-                <h3 id="detail-title" class="text-base font-bold text-white leading-snug mb-3"></h3>
-
-                <div id="detail-note-box" class="hidden mb-4 p-3 rounded-2xl bg-[#0a0a0a] border border-[#1f1f1f] text-xs text-neutral-300 leading-relaxed"></div>
-
-                <!-- Primary Action: Open Link -->
-                <a 
-                    id="detail-open-btn" 
-                    href="#" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    class="w-full py-3 px-4 rounded-2xl bg-[#10b981] hover:bg-[#34d399] text-black font-semibold text-xs flex items-center justify-center gap-2 transition-colors mb-2.5"
-                >
-                    <span>ბმულის გახსნა</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path>
-                    </svg>
-                </a>
-
-                <!-- Secondary Actions: Share, Edit & Delete -->
-                <div class="grid grid-cols-3 gap-2">
-                    <button id="detail-share-btn" class="py-2.5 px-3 rounded-2xl bg-[#181818] hover:bg-[#222222] text-[#10b981] text-xs font-medium transition-colors">
-                        გაზიარება
-                    </button>
-                    <button id="detail-edit-btn" class="py-2.5 px-3 rounded-2xl bg-[#181818] hover:bg-[#222222] text-neutral-300 hover:text-white text-xs font-medium transition-colors">
-                        რედაქტირება
-                    </button>
-                    <button id="detail-delete-btn" class="py-2.5 px-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-medium transition-colors">
-                        წაშლა
-                    </button>
-                </div>
-            </div>
-        </div>
+    <!-- ცარიელი მდგომარეობა -->
+    <div id="emptyState" class="hidden max-w-[400px] mx-auto text-center py-16 px-4">
+      <div class="w-16 h-16 rounded-2xl theme-card mx-auto mb-4 flex items-center justify-center text-emerald-500">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
+        </svg>
+      </div>
+      <h3 class="text-base font-semibold mb-1">ჯერ არაფერია დამატებული</h3>
+      <p class="text-xs mb-4" style="color: var(--text-secondary);">დააჭირე ზედა + ღილაკს და შექმენი კატეგორია ან შეინახე სასურველი ლინკი.</p>
+      <button onclick="openCreateModal()" class="px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold cursor-pointer transition-colors">
+        + ახლის დამატება
+      </button>
     </div>
+  </main>
 
-    <!-- ===================================================================== -->
-    <!-- MODAL 4: Context Action Sheet ('...' Menu for Folders & Items)        -->
-    <!-- ===================================================================== -->
-    <div id="action-sheet-modal" class="fixed inset-0 z-50 hidden items-end sm:items-center justify-center p-4 bg-black/75 backdrop-blur-xs" onclick="if(event.target === this) closeActionSheet()">
-        <div class="bg-[#141414] border border-[#1f1f1f] rounded-3xl w-full max-w-xs overflow-hidden shadow-2xl">
-            <div class="px-4 py-3.5 border-b border-[#1f1f1f] text-center">
-                <p id="action-sheet-title" class="text-xs font-semibold text-white truncate"></p>
-            </div>
-            <div class="p-2 space-y-1">
-                <button id="action-sheet-share" class="w-full py-3 px-4 rounded-2xl text-left text-xs font-medium text-neutral-200 hover:bg-[#1f1f1f] flex items-center gap-3 transition-colors">
-                    <svg class="w-4 h-4 text-[#10b981]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"></path>
-                    </svg>
-                    <span>გაზიარება</span>
-                </button>
-                <button id="action-sheet-edit" class="w-full py-3 px-4 rounded-2xl text-left text-xs font-medium text-neutral-200 hover:bg-[#1f1f1f] flex items-center gap-3 transition-colors">
-                    <svg class="w-4 h-4 text-[#10b981]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"></path>
-                    </svg>
-                    <span>რედაქტირება</span>
-                </button>
-                <button id="action-sheet-delete" class="w-full py-3 px-4 rounded-2xl text-left text-xs font-medium text-red-400 hover:bg-red-500/10 flex items-center gap-3 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"></path>
-                    </svg>
-                    <span>წაშლა</span>
-                </button>
-            </div>
-            <div class="p-2 pt-0">
-                <button onclick="closeActionSheet()" class="w-full py-2.5 rounded-2xl bg-[#1c1c1c] text-xs font-medium text-neutral-400 hover:text-white transition-colors">
-                    გაუქმება
-                </button>
-            </div>
+  <!-- დამატების / რედაქტირების მოდალური ფანჯარა -->
+  <div id="itemModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background-color: var(--modal-backdrop); backdrop-filter: blur(6px);">
+    <div class="theme-card w-full max-w-md rounded-3xl p-5 shadow-2xl relative animate-fadeIn">
+      <div class="flex items-center justify-between mb-4">
+        <h2 id="modalTitle" class="text-base font-bold">ახლის დამატება</h2>
+        <button onclick="closeModal()" class="w-8 h-8 rounded-full theme-pill flex items-center justify-center cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- ტიპის არჩევა (კატეგორია / ქვეკატეგორია ან ლინკი) -->
+      <div id="typeSelectorWrap" class="grid grid-cols-2 gap-2 p-1 rounded-2xl mb-4" style="background-color: var(--bg-primary); border: 1px solid var(--border-subtle);">
+        <button type="button" id="typeFolderBtn" onclick="setModalType('folder')" class="py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer bg-emerald-600 text-white">
+          კატეგორია
+        </button>
+        <button type="button" id="typeLinkBtn" onclick="setModalType('link')" class="py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer" style="color: var(--text-secondary);">
+          ლინკი (საიტი)
+        </button>
+      </div>
+
+      <form onsubmit="saveItemForm(event)" class="space-y-3.5">
+        <!-- დასახელება -->
+        <div>
+          <label class="block text-xs font-medium mb-1.5" style="color: var(--text-secondary);">დასახელება</label>
+          <input
+            id="itemTitleInput"
+            type="text"
+            required
+            placeholder="მაგ: მუსიკა, ფილმები, YouTube..."
+            class="theme-input w-full px-3.5 py-2.5 rounded-xl text-sm focus:outline-none focus:border-emerald-500"
+          />
         </div>
-    </div>
 
-    <!-- ===================================================================== -->
-    <!-- MODAL 5: Custom Delete Confirmation Modal                             -->
-    <!-- ===================================================================== -->
-    <div id="confirm-delete-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-        <div class="bg-[#111111] border border-[#1f1f1f] rounded-3xl w-full max-w-xs p-5 shadow-2xl text-center">
-            <div class="w-11 h-11 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center mx-auto mb-3">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"></path>
-                </svg>
-            </div>
-            <h3 class="text-sm font-bold text-white mb-1">დაადასტურეთ წაშლა</h3>
-            <p id="confirm-delete-desc" class="text-xs text-neutral-400 mb-5">ნამდვილად გსურთ წაშლა?</p>
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="closeConfirmDelete()" class="py-2.5 rounded-2xl bg-[#181818] text-xs font-medium text-neutral-300 hover:text-white transition-colors">
-                    გაუქმება
-                </button>
-                <button id="confirm-delete-execute" class="py-2.5 rounded-2xl bg-red-600 hover:bg-red-500 text-xs font-semibold text-white transition-colors">
-                    წაშლა
-                </button>
-            </div>
+        <!-- URL ველი (მხოლოდ ლინკისთვის) -->
+        <div id="urlFieldWrap" class="hidden">
+          <label class="block text-xs font-medium mb-1.5" style="color: var(--text-secondary);">ვებ-მისამართი (URL)</label>
+          <input
+            id="itemUrlInput"
+            type="text"
+            placeholder="https://example.com"
+            class="theme-input w-full px-3.5 py-2.5 rounded-xl text-sm focus:outline-none focus:border-emerald-500"
+          />
         </div>
+
+        <!-- ფერის არჩევა -->
+        <div>
+          <label class="block text-xs font-medium mb-1.5" style="color: var(--text-secondary);">აიქონის ფერი</label>
+          <div id="colorPalette" class="flex items-center gap-2.5 flex-wrap">
+            <!-- JS-ით შეივსება -->
+          </div>
+        </div>
+
+        <!-- ლოკალური ფოტოს ატვირთვა (მხოლოდ ამ მოწყობილობაზე IndexedDB-ში) -->
+        <div class="pt-1 border-t" style="border-color: var(--border-subtle);">
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-medium" style="color: var(--text-secondary);">პირადი ფოტო (მხოლოდ ამ მოწყობილობაზე)</label>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400">არ იგზავნება ლინკით</span>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <!-- ფოტოს პრევიუ -->
+            <div id="photoPreviewBox" class="w-14 h-14 rounded-2xl theme-input flex items-center justify-center overflow-hidden shrink-0">
+              <svg class="w-6 h-6 opacity-40" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+              </svg>
+            </div>
+
+            <div class="flex flex-col gap-1.5 flex-1">
+              <label class="px-3 py-2 rounded-xl theme-pill text-xs font-medium text-center cursor-pointer hover:border-emerald-500/50 transition-colors">
+                ფოტოს არჩევა გალერეიდან
+                <input id="localPhotoInput" type="file" accept="image/*" class="hidden" onchange="handleLocalPhotoSelect(event)" />
+              </label>
+              <button type="button" id="removePhotoBtn" onclick="clearLocalPhotoSelection()" class="hidden px-3 py-1.5 rounded-xl text-xs font-medium text-red-400 hover:bg-red-500/10 text-center cursor-pointer">
+                ფოტოს წაშლა
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- მოქმედების ღილაკები -->
+        <div class="flex items-center gap-2 pt-2">
+          <button type="button" id="deleteItemBtn" onclick="deleteCurrentEditingItem()" class="hidden px-3.5 py-2.5 rounded-xl bg-red-500/15 text-red-400 hover:bg-red-500/25 text-xs font-semibold cursor-pointer">
+            წაშლა
+          </button>
+          <button type="button" onclick="closeModal()" class="flex-1 py-2.5 rounded-xl theme-pill text-xs font-semibold cursor-pointer">
+            გაუქმება
+          </button>
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold cursor-pointer shadow-lg shadow-emerald-600/20">
+            შენახვა
+          </button>
+        </div>
+      </form>
     </div>
+  </div>
 
-    <script>
-        // =====================================================================
-        // Application State & LocalStorage Persistence
-        // =====================================================================
-        const STORAGE_KEY = 'seifi_launcher_vault_v1';
+  <!-- შეტყობინების ტოსტი -->
+  <div id="toast">ლინკი დაკოპირდა!</div>
 
-        // Default demo structure: 1 sample folder ('პოლიტიკა') + 1 sample item inside
-        const DEFAULT_STATE = {
-            folders: [
-                {
-                    id: 'folder-politics-demo',
-                    parentId: null,
-                    name: 'პოლიტიკა',
-                    color: '#10b981',
-                    createdAt: Date.now()
-                }
-            ],
-            items: [
-                {
-                    id: 'item-demo-1',
-                    folderId: 'folder-politics-demo',
-                    url: 'https://www.youtube.com/watch?v=aircAruvnKk',
-                    youtubeId: 'aircAruvnKk',
-                    title: 'როგორ მუშაობს თანამედროვე სისტემები — ანალიზი',
-                    note: 'საინტერესო მიმოხილვა, მოგვიანებით სანახავად.',
-                    createdAt: Date.now()
-                }
-            ]
+  <script>
+    /**
+     * 1. ფერების პალიტრა (ზუსტად სქრინის ესთეტიკით)
+     */
+    const FOLDER_COLORS = [
+      { id: 'emerald', hex: '#10b981', bg: 'rgba(16, 185, 129, 0.14)' },
+      { id: 'blue',    hex: '#3b82f6', bg: 'rgba(59, 130, 246, 0.14)' },
+      { id: 'pink',    hex: '#ec4899', bg: 'rgba(236, 72, 153, 0.14)' },
+      { id: 'slate',   hex: '#e2e8f0', bg: 'rgba(226, 232, 240, 0.14)' },
+      { id: 'amber',   hex: '#f59e0b', bg: 'rgba(245, 158, 11, 0.14)' },
+      { id: 'purple',  hex: '#a855f7', bg: 'rgba(168, 85, 247, 0.14)' },
+      { id: 'red',     hex: '#ef4444', bg: 'rgba(239, 68, 68, 0.14)' },
+      { id: 'cyan',    hex: '#06b6d4', bg: 'rgba(6, 182, 212, 0.14)' }
+    ];
+
+    /**
+     * 2. IndexedDB — ლოკალური სურათების შესანახად (მხოლოდ მომხმარებლის დევაისზე)
+     */
+    const DB_NAME = 'ImperiaLocalImagesDB';
+    const STORE_NAME = 'images';
+    let dbInstance = null;
+    const localPhotoCache = {}; // memory cache: { itemId: dataUrl }
+
+    function initIndexedDB() {
+      return new Promise((resolve) => {
+        try {
+          const request = indexedDB.open(DB_NAME, 1);
+          request.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+              db.createObjectStore(STORE_NAME);
+            }
+          };
+          request.onsuccess = (e) => {
+            dbInstance = e.target.result;
+            loadAllLocalImages().then(resolve);
+          };
+          request.onerror = () => resolve();
+        } catch (err) {
+          resolve();
+        }
+      });
+    }
+
+    function loadAllLocalImages() {
+      return new Promise((resolve) => {
+        if (!dbInstance) return resolve();
+        try {
+          const tx = dbInstance.transaction(STORE_NAME, 'readonly');
+          const store = tx.objectStore(STORE_NAME);
+          const req = store.openCursor();
+          req.onsuccess = (e) => {
+            const cursor = e.target.result;
+            if (cursor) {
+              localPhotoCache[cursor.key] = cursor.value;
+              cursor.continue();
+            } else {
+              resolve();
+            }
+          };
+          req.onerror = () => resolve();
+        } catch (err) {
+          resolve();
+        }
+      });
+    }
+
+    function saveLocalImageToDB(itemId, dataUrl) {
+      return new Promise((resolve) => {
+        if (!dataUrl) {
+          delete localPhotoCache[itemId];
+          if (!dbInstance) return resolve();
+          const tx = dbInstance.transaction(STORE_NAME, 'readwrite');
+          tx.objectStore(STORE_NAME).delete(itemId);
+          tx.oncomplete = () => resolve();
+          return;
+        }
+        localPhotoCache[itemId] = dataUrl;
+        if (!dbInstance) return resolve();
+        const tx = dbInstance.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).put(dataUrl, itemId);
+        tx.oncomplete = () => resolve();
+      });
+    }
+
+    // სურათის შეკუმშვა IndexedDB-სთვის, რომ ტელეფონის მეხსიერება არ გადატვირთოს
+    function compressImageFile(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_SIZE = 480;
+            let w = img.width;
+            let h = img.height;
+            if (w > h && w > MAX_SIZE) {
+              h = Math.round((h * MAX_SIZE) / w);
+              w = MAX_SIZE;
+            } else if (h > MAX_SIZE) {
+              w = Math.round((w * MAX_SIZE) / h);
+              h = MAX_SIZE;
+            }
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/webp', 0.82));
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
         };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
 
-        let appData = { folders: [], items: [] };
-        let currentFolderId = null; // null = Root ('მთავარი')
-        let searchQuery = '';
+    /**
+     * 3. აპლიკაციის მდგომარეობა (State) და სტარტერ კატეგორიები
+     */
+    const DEFAULT_ITEMS = [
+      { id: 'c1', type: 'folder', title: 'მშენებლობა', color: 'emerald', likes: 0, items: [] },
+      {
+        id: 'c2', type: 'folder', title: 'მუსიკა', color: 'blue', likes: 0,
+        items: [
+          { id: 'l21', type: 'link', title: 'YouTube Music', url: 'https://music.youtube.com', color: 'red', likes: 0 }
+        ]
+      },
+      { id: 'c3', type: 'folder', title: 'ფილმი', color: 'pink', likes: 0, items: [] },
+      {
+        id: 'c4', type: 'folder', title: 'სოფელი', color: 'slate', likes: 0,
+        items: [
+          { id: 'l41', type: 'link', title: 'ამინდი', url: 'https://amindi.ge', color: 'cyan', likes: 0 }
+        ]
+      },
+      { id: 'c5', type: 'folder', title: 'სწავლა', color: 'amber', likes: 0, items: [] },
+      {
+        id: 'c6', type: 'folder', title: 'სპორტი', color: 'purple', likes: 0,
+        items: [
+          { id: 'l61', type: 'link', title: 'Flashscore', url: 'https://www.flashscore.com', color: 'emerald', likes: 0 },
+          { id: 'l62', type: 'link', title: 'Setanta Sports', url: 'https://setantasports.com', color: 'amber', likes: 0 }
+        ]
+      },
+      { id: 'c7', type: 'folder', title: 'ფავორიტები', color: 'pink', likes: 0, items: [] }
+    ];
 
-        // Load data from localStorage
-        function loadData() {
-            try {
-                const raw = localStorage.getItem(STORAGE_KEY);
-                if (raw) {
-                    const parsed = JSON.parse(raw);
-                    appData.folders = Array.isArray(parsed.folders) ? parsed.folders : [];
-                    appData.items = Array.isArray(parsed.items) ? parsed.items : [];
-                    normalizeLikes();
-                } else {
-                    appData = JSON.parse(JSON.stringify(DEFAULT_STATE));
-                    saveData();
-                }
-            } catch (e) {
-                console.error('Failed to load storage:', e);
-                appData = JSON.parse(JSON.stringify(DEFAULT_STATE));
-            }
+    let appState = {
+      items: [],
+      currentPath: [], // კატეგორიების ID-ების გზა (მაგ: ['c2'] ან ['c2', 'sub1'])
+      searchQuery: '',
+      gridCols: 4,     // 4, 3 ან 2
+      theme: 'dark'    // 'dark' ან 'light'
+    };
+
+    // მოდალის დროებითი ცვლადები
+    let editingItemId = null;
+    let modalType = 'folder';
+    let selectedColor = 'emerald';
+    let pendingLocalPhotoData = undefined; // undefined = უცვლელი, null = წაშლილი, string = ახალი ფოტო
+
+    /**
+     * 4. URL Hash (#data=...) სერიალიზაცია და სინქრონიზაცია
+     */
+    function encodeStateToHash(items) {
+      try {
+        const jsonStr = JSON.stringify(items);
+        if (window.LZString) {
+          return LZString.compressToEncodedURIComponent(jsonStr);
         }
+        return btoa(encodeURIComponent(jsonStr));
+      } catch (e) {
+        return '';
+      }
+    }
 
-        function saveData() {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
-            } catch (e) {
-                showToast('მონაცემების შენახვა ვერ მოხერხდა');
-            }
+    function decodeStateFromHash(hashStr) {
+      try {
+        const clean = hashStr.replace(/^#data=/, '');
+        if (!clean) return null;
+        let jsonStr = null;
+        if (window.LZString) {
+          jsonStr = LZString.decompressFromEncodedURIComponent(clean);
         }
-
-        // =====================================================================
-        // Likes (heart + counter), persisted in localStorage with the entity
-        // =====================================================================
-        function normalizeLikes() {
-            [...appData.folders, ...appData.items].forEach(e => {
-                e.likes = Math.max(0, parseInt(e.likes, 10) || 0);
-                e.liked = e.liked === true;
-                if (e.liked && e.likes < 1) e.likes = 1;
-            });
+        if (!jsonStr) {
+          jsonStr = decodeURIComponent(atob(clean));
         }
+        const parsed = JSON.parse(jsonStr);
+        return Array.isArray(parsed) ? parsed : null;
+      } catch (e) {
+        return null;
+      }
+    }
 
-        function likeButtonHtml(type, entity) {
-            const liked = entity.liked === true;
-            const count = Math.max(0, parseInt(entity.likes, 10) || 0);
-            const stateCls = liked
-                ? 'text-rose-400 bg-rose-500/10 border-rose-500/30'
-                : 'text-neutral-500 bg-[#121212] border-[#1f1f1f] hover:text-neutral-300';
-            return `
-                <button
-                    type="button"
-                    onclick="event.stopPropagation(); toggleLike('${type}', '${entity.id}')"
-                    aria-pressed="${liked}"
-                    aria-label="${liked ? 'ლაიქის მოხსნა' : 'მოწონება'}"
-                    class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-medium active:scale-90 transition-all ${stateCls}"
-                >
-                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="${liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.099 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/>
-                    </svg>
-                    <span>${count}</span>
-                </button>
-            `;
+    function syncState() {
+      // 1. შენახვა localStorage-ში
+      try {
+        localStorage.setItem('imperia_items_v1', JSON.stringify(appState.items));
+        localStorage.setItem('imperia_prefs_v1', JSON.stringify({
+          gridCols: appState.gridCols,
+          theme: appState.theme
+        }));
+      } catch (e) {}
+
+      // 2. რეალურ დროში URL-ის განახლება (მხოლოდ მონაცემები, ლოკალური სურათების გარეშე!)
+      const compressed = encodeStateToHash(appState.items);
+      if (compressed) {
+        try {
+          history.replaceState(null, '', '#data=' + compressed);
+        } catch (e) {
+          window.location.hash = 'data=' + compressed;
         }
+      }
+    }
 
-        function toggleLike(type, id) {
-            const list = type === 'folder' ? appData.folders : appData.items;
-            const entity = list.find(x => x.id === id);
-            if (!entity) return;
-            const current = Math.max(0, parseInt(entity.likes, 10) || 0);
-            if (entity.liked) {
-                entity.liked = false;
-                entity.likes = Math.max(0, current - 1);
-            } else {
-                entity.liked = true;
-                entity.likes = current + 1;
-            }
-            saveData();
-            renderApp();
+    function loadInitialState() {
+      // პარამეტრების აღდგენა (თემა და ბადის ზომა)
+      try {
+        const prefs = JSON.parse(localStorage.getItem('imperia_prefs_v1') || '{}');
+        if ([2, 3, 4].includes(prefs.gridCols)) appState.gridCols = prefs.gridCols;
+        if (prefs.theme === 'light' || prefs.theme === 'dark') appState.theme = prefs.theme;
+      } catch (e) {}
+
+      applyThemeUI();
+      applyGridColsUI();
+
+      // პირველ რიგში ვამოწმებთ URL-ს (#data=...), რომ გაზიარებული ლინკი პირდაპირ გაიხსნას
+      if (window.location.hash && window.location.hash.startsWith('#data=')) {
+        const fromUrl = decodeStateFromHash(window.location.hash);
+        if (fromUrl) {
+          appState.items = fromUrl;
+          document.getElementById('sharedNotice').classList.remove('hidden');
+          document.getElementById('sharedNotice').classList.add('flex');
+          syncState();
+          return;
         }
+      }
 
-        // =====================================================================
-        // Share (Native Web Share API, clipboard fallback)
-        // =====================================================================
-        function collectFolderLines(folderId, depth, visited) {
-            if (visited.has(folderId)) return [];
-            visited.add(folderId);
-            const pad = '  '.repeat(depth);
-            let lines = [];
-            appData.items.filter(i => i.folderId === folderId).forEach(i => {
-                lines.push(`${pad}• ${i.title} — ${i.url}`);
-            });
-            appData.folders.filter(f => f.parentId === folderId).forEach(f => {
-                lines.push(`${pad}📁 ${f.name}`);
-                lines = lines.concat(collectFolderLines(f.id, depth + 1, visited));
-            });
-            return lines;
+      // თუ URL ცარიელია, ვკითხულობთ localStorage-დან
+      try {
+        const saved = localStorage.getItem('imperia_items_v1');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            appState.items = parsed;
+            syncState();
+            return;
+          }
         }
+      } catch (e) {}
 
-        function buildShareData(type, id) {
-            if (type === 'folder') {
-                const folder = appData.folders.find(f => f.id === id);
-                if (!folder) return null;
-                const lines = collectFolderLines(folder.id, 0, new Set());
-                const text = [`📁 ${folder.name}`, ...lines].join('\n');
-                return { title: folder.name, text, clipboard: text };
-            }
-            const item = appData.items.find(i => i.id === id);
-            if (!item) return null;
-            const text = item.note ? `${item.title}\n${item.note}` : item.title;
-            return { title: item.title, text, url: item.url, clipboard: item.url };
+      // თუ საერთოდ პირველად შედის მომხმარებელი, ვსვამთ საწყის კატეგორიებს
+      appState.items = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
+      syncState();
+    }
+
+    /**
+     * 5. ნავიგაცია და დამხმარე ფუნქციები ხის სტრუქტურისთვის
+     */
+    function getCurrentFolder() {
+      let currentList = appState.items;
+      let folder = null;
+      for (const id of appState.currentPath) {
+        folder = currentList.find(item => item.id === id && item.type === 'folder');
+        if (!folder) {
+          appState.currentPath = [];
+          return null;
         }
-
-        async function copyToClipboard(text) {
-            try {
-                if (navigator.clipboard && window.isSecureContext) {
-                    await navigator.clipboard.writeText(text);
-                    return true;
-                }
-            } catch { /* fall through to legacy method */ }
-            try {
-                const ta = document.createElement('textarea');
-                ta.value = text;
-                ta.setAttribute('readonly', '');
-                ta.style.position = 'fixed';
-                ta.style.opacity = '0';
-                document.body.appendChild(ta);
-                ta.select();
-                const ok = document.execCommand('copy');
-                ta.remove();
-                return ok;
-            } catch {
-                return false;
-            }
-        }
-
-        async function shareEntity(type, id) {
-            const data = buildShareData(type, id);
-            if (!data) return;
-            const { clipboard, ...shareData } = data;
-
-            if (navigator.share) {
-                try {
-                    if (!navigator.canShare || navigator.canShare(shareData)) {
-                        await navigator.share(shareData);
-                        return;
-                    }
-                } catch (err) {
-                    if (err && err.name === 'AbortError') return; // user closed the share sheet
-                }
-            }
-
-            const ok = await copyToClipboard(clipboard);
-            showToast(ok
-                ? (type === 'folder' ? 'სია დაკოპირდა ბუფერში' : 'ბმული დაკოპირდა ბუფერში')
-                : 'გაზიარება ვერ მოხერხდა');
-        }
-
-        // =====================================================================
-        // Navigation & Breadcrumb Logic
-        // =====================================================================
-        function openFolder(folderId) {
-            currentFolderId = folderId;
-            if (searchQuery) {
-                clearSearch(false);
-            }
-            renderApp();
-        }
-
-        function navigateUp() {
-            if (!currentFolderId) return;
-            const current = appData.folders.find(f => f.id === currentFolderId);
-            currentFolderId = current ? current.parentId : null;
-            renderApp();
-        }
-
-        function getBreadcrumbPath(folderId) {
-            const path = [];
-            let currId = folderId;
-            const visited = new Set();
-            while (currId && !visited.has(currId)) {
-                visited.add(currId);
-                const folder = appData.folders.find(f => f.id === currId);
-                if (!folder) break;
-                path.unshift(folder);
-                currId = folder.parentId;
-            }
-            return path;
-        }
-
-        function renderBreadcrumbs() {
-            const bar = document.getElementById('breadcrumb-bar');
-            const trail = document.getElementById('breadcrumb-trail');
-
-            if (!currentFolderId || searchQuery) {
-                bar.classList.add('hidden');
-                return;
-            }
-
-            bar.classList.remove('hidden');
-            const path = getBreadcrumbPath(currentFolderId);
-
-            let html = `
-                <button onclick="openFolder(null)" class="hover:text-white transition-colors">
-                    მთავარი
-                </button>
-            `;
-
-            path.forEach((folder, idx) => {
-                const isLast = idx === path.length - 1;
-                html += `<span class="text-neutral-600 select-none">›</span>`;
-                if (isLast) {
-                    html += `<span class="text-white font-semibold truncate max-w-[180px] sm:max-w-xs">${escapeHtml(folder.name)}</span>`;
-                } else {
-                    html += `<button onclick="openFolder('${folder.id}')" class="hover:text-white transition-colors truncate max-w-[120px]">${escapeHtml(folder.name)}</button>`;
-                }
-            });
-
-            trail.innerHTML = html;
-        }
-
-        // =====================================================================
-        // Search Logic
-        // =====================================================================
-        function handleSearch(val) {
-            searchQuery = val.trim().toLowerCase();
-            const clearBtn = document.getElementById('clear-search-btn');
-            if (searchQuery.length > 0) {
-                clearBtn.classList.remove('hidden');
-            } else {
-                clearBtn.classList.add('hidden');
-            }
-            renderApp();
-        }
-
-        function clearSearch(shouldRender = true) {
-            searchQuery = '';
-            document.getElementById('search-input').value = '';
-            document.getElementById('clear-search-btn').classList.add('hidden');
-            if (shouldRender) renderApp();
-        }
-
-        // =====================================================================
-        // YouTube & Domain Helpers
-        // =====================================================================
-        function extractYouTubeId(url) {
-            if (!url) return null;
-            const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
-            const match = url.match(regExp);
-            return match ? match[1] : null;
-        }
-
-        function getDomain(url) {
-            try {
-                return new URL(url).hostname.replace(/^www\./, '');
-            } catch {
-                return 'link';
-            }
-        }
-
-        // Count direct children (subfolders + items) inside a folder
-        function getFolderChildCount(folderId) {
-            const subCount = appData.folders.filter(f => f.parentId === folderId).length;
-            const itemCount = appData.items.filter(i => i.folderId === folderId).length;
-            return subCount + itemCount;
-        }
-
-        // =====================================================================
-        // Main Grid Renderer (Smartphone App Icons)
-        // =====================================================================
-        function renderApp() {
-            renderBreadcrumbs();
-
-            const grid = document.getElementById('app-grid');
-            const emptyState = document.getElementById('empty-state');
-            const searchBar = document.getElementById('search-status-bar');
-            const searchCount = document.getElementById('search-count');
-
-            let visibleFolders = [];
-            let visibleItems = [];
-
-            if (searchQuery) {
-                // Global real-time search across all folders & items
-                visibleFolders = appData.folders.filter(f => 
-                    f.name.toLowerCase().includes(searchQuery)
-                );
-                visibleItems = appData.items.filter(i => 
-                    i.title.toLowerCase().includes(searchQuery) ||
-                    (i.note && i.note.toLowerCase().includes(searchQuery)) ||
-                    i.url.toLowerCase().includes(searchQuery)
-                );
-                searchBar.classList.remove('hidden');
-                searchCount.textContent = visibleFolders.length + visibleItems.length;
-            } else {
-                searchBar.classList.add('hidden');
-                visibleFolders = appData.folders.filter(f => f.parentId === currentFolderId);
-                visibleItems = appData.items.filter(i => i.folderId === currentFolderId);
-            }
-
-            if (visibleFolders.length === 0 && visibleItems.length === 0) {
-                grid.innerHTML = '';
-                emptyState.classList.remove('hidden');
-                emptyState.classList.add('flex');
-                document.getElementById('empty-state-title').textContent = searchQuery 
-                    ? 'არაფერი მოიძებნა' 
-                    : 'ეს სივრცე ცარიელია';
-                return;
-            }
-
-            emptyState.classList.add('hidden');
-            emptyState.classList.remove('flex');
-
-            let html = '';
-
-            // 1. Render Category / Folder Square Icons
-            visibleFolders.forEach(folder => {
-                const count = getFolderChildCount(folder.id);
-                const accent = folder.color || '#10b981';
-
-                html += `
-                    <div class="group relative flex flex-col items-center select-none">
-                        <!-- Top-right '...' action button -->
-                        <button 
-                            type="button"
-                            onclick="event.stopPropagation(); openActionSheet('folder', '${folder.id}')"
-                            aria-label="მენიუ"
-                            class="absolute -top-1.5 -right-1.5 z-10 w-6 h-6 rounded-full bg-[#1a1a1a]/95 border border-[#2a2a2a] text-neutral-400 hover:text-white flex items-center justify-center opacity-80 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-opacity shadow-md"
-                        >
-                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                                <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
-                            </svg>
-                        </button>
-
-                        <!-- Square App Icon (Folder) -->
-                        <button 
-                            type="button"
-                            onclick="openFolder('${folder.id}')"
-                            class="w-full aspect-square rounded-[22px] sm:rounded-[26px] bg-[#131313] hover:bg-[#181818] active:scale-95 border border-[#1f1f1f] hover:border-[#2e2e2e] flex flex-col items-center justify-center relative transition-all duration-200 shadow-lg"
-                        >
-                            <!-- Subtle Mini Grid / Folder Icon -->
-                            <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105" style="background-color: ${accent}18; color: ${accent};">
-                                <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M19.5 21a3 3 0 003-3v-4.5a3 3 0 00-3-3h-15a3 3 0 00-3 3V18a3 3 0 003 3h15zM1.5 10.146V6a3 3 0 013-3h5.379a2.25 2.25 0 011.59.659l2.122 2.121c.14.141.331.22.53.22H19.5a3 3 0 013 3v1.146A4.483 4.483 0 0019.5 9h-15a4.483 4.483 0 00-3 1.146z" />
-                                </svg>
-                            </div>
-
-                            <!-- Item Count Badge -->
-                            ${count > 0 ? `
-                                <span class="absolute bottom-2 right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-[#1e1e1e] border border-[#2c2c2c] text-[10px] font-semibold text-neutral-300 flex items-center justify-center">
-                                    ${count}
-                                </span>
-                            ` : ''}
-                        </button>
-
-                        <!-- Truncated App Label Underneath -->
-                        <span onclick="openFolder('${folder.id}')" class="mt-2 w-full text-center text-[11px] sm:text-xs font-medium text-neutral-200 truncate px-0.5 cursor-pointer">
-                            ${escapeHtml(folder.name)}
-                        </span>
-                        ${likeButtonHtml('folder', folder)}
-                    </div>
-                `;
-            });
-
-            // 2. Render Content / Video Square Icons
-            visibleItems.forEach(item => {
-                const ytThumb = item.youtubeId ? `https://img.youtube.com/vi/${item.youtubeId}/hqdefault.jpg` : null;
-                const domain = getDomain(item.url);
-                const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`;
-
-                const innerVisual = ytThumb ? `
-                    <img 
-                        src="${ytThumb}" 
-                        alt="${escapeHtml(item.title)}" 
-                        onerror="this.src='https://placehold.co/300x300/141414/10b981?text=Video'"
-                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    >
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                    <!-- Play Badge -->
-                    <div class="absolute bottom-2 left-2 w-6 h-6 rounded-full bg-black/75 backdrop-blur-xs border border-white/15 flex items-center justify-center text-[#10b981]">
-                        <svg class="w-3 h-3 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                    </div>
-                ` : `
-                    <div class="w-full h-full bg-gradient-to-br from-[#161616] to-[#0f1613] flex flex-col items-center justify-center p-2 relative">
-                        <img 
-                            src="${faviconUrl}" 
-                            alt="" 
-                            onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"
-                            class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-contain mb-1"
-                        >
-                        <svg class="hidden w-7 h-7 text-[#10b981] mb-1" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"></path>
-                        </svg>
-                        <span class="text-[9px] sm:text-[10px] font-mono text-neutral-400 truncate max-w-[90%] px-1.5 py-0.5 rounded-md bg-black/50 border border-[#1f1f1f]">
-                            ${escapeHtml(domain)}
-                        </span>
-                    </div>
-                `;
-
-                html += `
-                    <div class="group relative flex flex-col items-center select-none">
-                        <!-- Top-right '...' action button -->
-                        <button 
-                            type="button"
-                            onclick="event.stopPropagation(); openActionSheet('item', '${item.id}')"
-                            aria-label="მენიუ"
-                            class="absolute -top-1.5 -right-1.5 z-10 w-6 h-6 rounded-full bg-[#1a1a1a]/95 border border-[#2a2a2a] text-neutral-400 hover:text-white flex items-center justify-center opacity-80 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-opacity shadow-md"
-                        >
-                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                                <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
-                            </svg>
-                        </button>
-
-                        <!-- Square App Icon (Content) -->
-                        <button 
-                            type="button"
-                            onclick="openDetailModal('${item.id}')"
-                            class="w-full aspect-square rounded-[22px] sm:rounded-[26px] bg-[#141414] active:scale-95 border border-[#1f1f1f] hover:border-[#10b981]/50 overflow-hidden relative transition-all duration-200 shadow-lg"
-                        >
-                            ${innerVisual}
-                        </button>
-
-                        <!-- Truncated App Label Underneath -->
-                        <span onclick="openDetailModal('${item.id}')" class="mt-2 w-full text-center text-[11px] sm:text-xs font-medium text-neutral-300 truncate px-0.5 cursor-pointer">
-                            ${escapeHtml(item.title)}
-                        </span>
-                        ${likeButtonHtml('item', item)}
-                    </div>
-                `;
-            });
-
-            grid.innerHTML = html;
-        }
-
-        // =====================================================================
-        // Left '+' Modal: Create & Edit Category / Folder
-        // =====================================================================
-        function openCategoryModal(folderToEdit = null) {
-            const modal = document.getElementById('category-modal');
-            const titleEl = document.getElementById('category-modal-title');
-            const idInput = document.getElementById('edit-category-id');
-            const nameInput = document.getElementById('category-name-input');
-
-            if (folderToEdit) {
-                titleEl.textContent = 'კატეგორიის რედაქტირება';
-                idInput.value = folderToEdit.id;
-                nameInput.value = folderToEdit.name;
-                selectCategoryColor(folderToEdit.color || '#10b981');
-            } else {
-                titleEl.textContent = currentFolderId ? 'ახალი ქვეკატეგორია' : 'ახალი კატეგორია';
-                idInput.value = '';
-                nameInput.value = '';
-                selectCategoryColor('#10b981');
-            }
-
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            setTimeout(() => nameInput.focus(), 50);
-        }
-
-        function closeCategoryModal() {
-            const modal = document.getElementById('category-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        function selectCategoryColor(color) {
-            document.getElementById('category-color-input').value = color;
-            document.querySelectorAll('.color-dot').forEach(btn => {
-                if (btn.dataset.color === color) {
-                    btn.classList.add('ring-2', 'ring-offset-2', 'ring-offset-[#111111]', 'ring-white', 'opacity-100');
-                    btn.classList.remove('opacity-70');
-                } else {
-                    btn.classList.remove('ring-2', 'ring-offset-2', 'ring-offset-[#111111]', 'ring-white', 'opacity-100');
-                    btn.classList.add('opacity-70');
-                }
-            });
-        }
-
-        function saveCategory(e) {
-            e.preventDefault();
-            const editId = document.getElementById('edit-category-id').value;
-            const name = document.getElementById('category-name-input').value.trim();
-            const color = document.getElementById('category-color-input').value;
-
-            if (!name) return;
-
-            if (editId) {
-                const idx = appData.folders.findIndex(f => f.id === editId);
-                if (idx !== -1) {
-                    appData.folders[idx].name = name;
-                    appData.folders[idx].color = color;
-                    showToast('კატეგორია განახლდა');
-                }
-            } else {
-                const newFolder = {
-                    id: 'folder-' + Date.now(),
-                    parentId: currentFolderId,
-                    name,
-                    color,
-                    createdAt: Date.now()
-                };
-                appData.folders.push(newFolder);
-                showToast(`შეიქმნა „${name}“`);
-            }
-
-            saveData();
-            closeCategoryModal();
-            renderApp();
-        }
-
-        // =====================================================================
-        // Right '+' Modal: Create & Edit Link / Video / Content
-        // =====================================================================
-        function openItemModal(itemToEdit = null) {
-            const modal = document.getElementById('item-modal');
-            const titleEl = document.getElementById('item-modal-title');
-            const idInput = document.getElementById('edit-item-id');
-            const urlInput = document.getElementById('item-url-input');
-            const itemTitleInput = document.getElementById('item-title-input');
-            const noteInput = document.getElementById('item-note-input');
-
-            document.getElementById('yt-preview-wrapper').classList.add('hidden');
-
-            if (itemToEdit) {
-                titleEl.textContent = 'ბმულის რედაქტირება';
-                idInput.value = itemToEdit.id;
-                urlInput.value = itemToEdit.url;
-                itemTitleInput.value = itemToEdit.title;
-                noteInput.value = itemToEdit.note || '';
-                handleItemUrlChange(itemToEdit.url, false);
-            } else {
-                titleEl.textContent = 'ახალი ბმული';
-                idInput.value = '';
-                urlInput.value = '';
-                itemTitleInput.value = '';
-                noteInput.value = '';
-            }
-
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            setTimeout(() => urlInput.focus(), 50);
-        }
-
-        function closeItemModal() {
-            const modal = document.getElementById('item-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        async function handleItemUrlChange(url, autoSuggestTitle = true) {
-            const ytId = extractYouTubeId(url);
-            const wrapper = document.getElementById('yt-preview-wrapper');
-            const img = document.getElementById('yt-preview-image');
-            const titleInput = document.getElementById('item-title-input');
-
-            if (ytId) {
-                img.src = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
-                wrapper.classList.remove('hidden');
-
-                // Try fetching YouTube video title quietly via oEmbed if title field is empty
-                if (autoSuggestTitle && !titleInput.value.trim()) {
-                    try {
-                        const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${ytId}&format=json`);
-                        if (res.ok) {
-                            const data = await res.json();
-                            if (data.title && !titleInput.value.trim()) {
-                                titleInput.value = data.title;
-                            }
-                        }
-                    } catch {
-                        // Fallback silently if offline/blocked
-                    }
-                }
-            } else {
-                wrapper.classList.add('hidden');
-            }
-        }
-
-        function saveItem(e) {
-            e.preventDefault();
-            const editId = document.getElementById('edit-item-id').value;
-            const url = document.getElementById('item-url-input').value.trim();
-            const title = document.getElementById('item-title-input').value.trim();
-            const note = document.getElementById('item-note-input').value.trim();
-            const youtubeId = extractYouTubeId(url);
-
-            if (!url || !title) return;
-
-            if (editId) {
-                const idx = appData.items.findIndex(i => i.id === editId);
-                if (idx !== -1) {
-                    appData.items[idx] = {
-                        ...appData.items[idx],
-                        url,
-                        youtubeId,
-                        title,
-                        note
-                    };
-                    showToast('ბმული განახლდა');
-                }
-            } else {
-                const newItem = {
-                    id: 'item-' + Date.now(),
-                    folderId: currentFolderId,
-                    url,
-                    youtubeId,
-                    title,
-                    note,
-                    createdAt: Date.now()
-                };
-                appData.items.unshift(newItem);
-                showToast('შენახულია');
-            }
-
-            saveData();
-            closeItemModal();
-            renderApp();
-        }
-
-        // =====================================================================
-        // Item Detail Preview Modal
-        // =====================================================================
-        function openDetailModal(itemId) {
-            const item = appData.items.find(i => i.id === itemId);
-            if (!item) return;
-
-            const modal = document.getElementById('detail-modal');
-            const visual = document.getElementById('detail-visual');
-            const domainEl = document.getElementById('detail-domain');
-            const titleEl = document.getElementById('detail-title');
-            const noteBox = document.getElementById('detail-note-box');
-            const openBtn = document.getElementById('detail-open-btn');
-            const editBtn = document.getElementById('detail-edit-btn');
-            const deleteBtn = document.getElementById('detail-delete-btn');
-
-            const domain = getDomain(item.url);
-            domainEl.textContent = domain;
-            titleEl.textContent = item.title;
-            openBtn.href = item.url;
-
-            if (item.youtubeId) {
-                visual.innerHTML = `
-                    <img src="https://img.youtube.com/vi/${item.youtubeId}/hqdefault.jpg" alt="" class="w-full h-full object-cover">
-                    <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" class="absolute inset-0 bg-black/30 hover:bg-black/15 flex items-center justify-center transition-colors">
-                        <div class="w-12 h-12 rounded-full bg-[#10b981] text-black flex items-center justify-center shadow-xl">
-                            <svg class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                        </div>
-                    </a>
-                `;
-            } else {
-                const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`;
-                visual.innerHTML = `
-                    <div class="flex flex-col items-center justify-center gap-2 p-4">
-                        <img src="${faviconUrl}" alt="" onerror="this.style.display='none'" class="w-12 h-12 rounded-2xl">
-                        <span class="text-xs text-neutral-500 font-mono">${escapeHtml(domain)}</span>
-                    </div>
-                `;
-            }
-
-            if (item.note) {
-                noteBox.textContent = item.note;
-                noteBox.classList.remove('hidden');
-            } else {
-                noteBox.classList.add('hidden');
-            }
-
-            document.getElementById('detail-share-btn').onclick = () => {
-                shareEntity('item', item.id);
-            };
-
-            editBtn.onclick = () => {
-                closeDetailModal();
-                openItemModal(item);
-            };
-
-            deleteBtn.onclick = () => {
-                closeDetailModal();
-                promptConfirmDelete('item', item.id, `წავშალოთ „${item.title}“?`);
-            };
-
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function closeDetailModal() {
-            const modal = document.getElementById('detail-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        // =====================================================================
-        // Context Action Sheet ('...' Button) & Cascading Delete
-        // =====================================================================
-        function openActionSheet(type, id) {
-            const sheet = document.getElementById('action-sheet-modal');
-            const titleEl = document.getElementById('action-sheet-title');
-            const editBtn = document.getElementById('action-sheet-edit');
-            const deleteBtn = document.getElementById('action-sheet-delete');
-
-            if (type === 'folder') {
-                const folder = appData.folders.find(f => f.id === id);
-                if (!folder) return;
-                titleEl.textContent = folder.name;
-
-                document.getElementById('action-sheet-share').onclick = () => {
-                    closeActionSheet();
-                    shareEntity('folder', folder.id);
-                };
-                editBtn.onclick = () => {
-                    closeActionSheet();
-                    openCategoryModal(folder);
-                };
-                deleteBtn.onclick = () => {
-                    closeActionSheet();
-                    promptConfirmDelete('folder', folder.id, `წავშალოთ კატეგორია „${folder.name}“ და მისი შიგთავსი?`);
-                };
-            } else {
-                const item = appData.items.find(i => i.id === id);
-                if (!item) return;
-                titleEl.textContent = item.title;
-
-                document.getElementById('action-sheet-share').onclick = () => {
-                    closeActionSheet();
-                    shareEntity('item', item.id);
-                };
-                editBtn.onclick = () => {
-                    closeActionSheet();
-                    openItemModal(item);
-                };
-                deleteBtn.onclick = () => {
-                    closeActionSheet();
-                    promptConfirmDelete('item', item.id, `წავშალოთ „${item.title}“?`);
-                };
-            }
-
-            sheet.classList.remove('hidden');
-            sheet.classList.add('flex');
-        }
-
-        function closeActionSheet() {
-            const sheet = document.getElementById('action-sheet-modal');
-            sheet.classList.add('hidden');
-            sheet.classList.remove('flex');
-        }
-
-        function promptConfirmDelete(type, id, message) {
-            const modal = document.getElementById('confirm-delete-modal');
-            document.getElementById('confirm-delete-desc').textContent = message;
-
-            document.getElementById('confirm-delete-execute').onclick = () => {
-                if (type === 'folder') {
-                    deleteFolderRecursively(id);
-                    showToast('კატეგორია წაიშალა');
-                } else {
-                    appData.items = appData.items.filter(i => i.id !== id);
-                    showToast('ბმული წაიშალა');
-                }
-                saveData();
-                closeConfirmDelete();
-                renderApp();
-            };
-
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function closeConfirmDelete() {
-            const modal = document.getElementById('confirm-delete-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        // Deletes folder, all nested subfolders, and all items inside them
-        function deleteFolderRecursively(folderId) {
-            const childFolders = appData.folders.filter(f => f.parentId === folderId);
-            childFolders.forEach(cf => deleteFolderRecursively(cf.id));
-
-            appData.items = appData.items.filter(i => i.folderId !== folderId);
-            appData.folders = appData.folders.filter(f => f.id !== folderId);
-        }
-
-        // =====================================================================
-        // Utilities (XSS Safe Escape & Toast Notification)
-        // =====================================================================
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-
-        function showToast(msg) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'px-4 py-2.5 rounded-2xl bg-[#161616] border border-[#2a2a2a] text-xs font-medium text-white shadow-2xl flex items-center gap-2 transition-all duration-200 translate-y-2 opacity-0';
-            toast.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-[#10b981]"></span><span>${escapeHtml(msg)}</span>`;
-            container.appendChild(toast);
-
-            requestAnimationFrame(() => {
-                toast.classList.remove('translate-y-2', 'opacity-0');
-            });
-
-            setTimeout(() => {
-                toast.classList.add('translate-y-2', 'opacity-0');
-                setTimeout(() => toast.remove(), 220);
-            }, 2400);
-        }
-
-        // Escape key closes open modals
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeCategoryModal();
-                closeItemModal();
-                closeDetailModal();
-                closeActionSheet();
-                closeConfirmDelete();
-            }
+        if (!Array.isArray(folder.items)) folder.items = [];
+        currentList = folder.items;
+      }
+      return folder;
+    }
+
+    function getActiveItemsList() {
+      const folder = getCurrentFolder();
+      return folder ? folder.items : appState.items;
+    }
+
+    function openFolder(folderId) {
+      appState.currentPath.push(folderId);
+      appState.searchQuery = '';
+      document.getElementById('searchInput').value = '';
+      render();
+    }
+
+    function navigateUp() {
+      if (appState.currentPath.length > 0) {
+        appState.currentPath.pop();
+        render();
+      }
+    }
+
+    function navigateToRoot() {
+      appState.currentPath = [];
+      render();
+    }
+
+    function getColorObj(colorId) {
+      return FOLDER_COLORS.find(c => c.id === colorId) || FOLDER_COLORS[0];
+    }
+
+    function extractDomain(url) {
+      try {
+        const u = new URL(url.startsWith('http') ? url : 'https://' + url);
+        return u.hostname.replace(/^www\./, '');
+      } catch (e) {
+        return url;
+      }
+    }
+
+    function normalizeUrl(url) {
+      const trimmed = url.trim();
+      if (!trimmed) return 'https://example.com';
+      if (/^https?:\/\//i.test(trimmed)) return trimmed;
+      return 'https://' + trimmed;
+    }
+
+    /**
+     * 6. ეკრანის დახატვა (Render)
+     */
+    function render() {
+      const gridEl = document.getElementById('itemsGrid');
+      const emptyEl = document.getElementById('emptyState');
+      const breadcrumbBar = document.getElementById('breadcrumbBar');
+      const breadcrumbTrail = document.getElementById('breadcrumbTrail');
+
+      // Breadcrumb განახლება
+      if (appState.currentPath.length > 0) {
+        breadcrumbBar.classList.remove('hidden');
+        breadcrumbBar.classList.add('flex');
+
+        let trailHtml = `<button onclick="navigateToRoot()" class="hover:text-emerald-500 cursor-pointer">მთავარი</button>`;
+        let list = appState.items;
+        appState.currentPath.forEach((id, idx) => {
+          const f = list.find(x => x.id === id);
+          if (f) {
+            trailHtml += `<span>/</span><span class="${idx === appState.currentPath.length - 1 ? 'font-bold text-emerald-500' : ''}">${escapeHtml(f.title)}</span>`;
+            list = f.items || [];
+          }
         });
+        breadcrumbTrail.innerHTML = trailHtml;
+      } else {
+        breadcrumbBar.classList.add('hidden');
+        breadcrumbBar.classList.remove('flex');
+      }
 
-        // Initialize on load
-        window.addEventListener('DOMContentLoaded', () => {
-            loadData();
-            renderApp();
-        });
-    </script>
+      // ელემენტების გაფილტვრა ძიებით
+      let itemsToShow = getActiveItemsList();
+      if (appState.searchQuery.trim() !== '') {
+        const q = appState.searchQuery.toLowerCase();
+        itemsToShow = collectMatchingItems(appState.items, q);
+      }
+
+      if (itemsToShow.length === 0) {
+        gridEl.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+
+      emptyEl.classList.add('hidden');
+      gridEl.innerHTML = itemsToShow.map(item => renderCardHTML(item)).join('');
+    }
+
+    function collectMatchingItems(list, query) {
+      let matches = [];
+      for (const item of list) {
+        const titleMatch = (item.title || '').toLowerCase().includes(query);
+        const urlMatch = (item.url || '').toLowerCase().includes(query);
+        if (titleMatch || urlMatch) {
+          matches.push(item);
+        }
+        if (item.type === 'folder' && Array.isArray(item.items)) {
+          matches = matches.concat(collectMatchingItems(item.items, query));
+        }
+      }
+      return matches;
+    }
+
+    function renderCardHTML(item) {
+      const colorObj = getColorObj(item.color);
+      const localPhoto = localPhotoCache[item.id];
+      const isFolder = item.type === 'folder';
+      const childCount = isFolder && Array.isArray(item.items) ? item.items.length : 0;
+      const likes = item.likes || 0;
+
+      // ბარათის შიდა ვიზუალი: თუ ლოკალური ფოტო აქვს მომხმარებელს — ვაჩვენებთ ფოტოს, თუ არა — ფოლდერის/საიტის აიქონს
+      let innerVisual = '';
+      if (localPhoto) {
+        innerVisual = `<img src="${localPhoto}" alt="${escapeHtml(item.title)}" class="w-full h-full object-cover" />`;
+      } else if (isFolder) {
+        innerVisual = `
+          <div class="folder-glow" style="background-color: ${colorObj.bg};">
+            <svg class="w-7 h-7 sm:w-8 sm:h-8" style="color: ${colorObj.hex};" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M19.5 21a3 3 0 003-3v-4.5a3 3 0 00-3-3h-15a3 3 0 00-3 3V18a3 3 0 003 3h15zM1.5 10.146V6a3 3 0 013-3h5.379a2.25 2.25 0 011.59.659l2.122 2.121c.14.141.331.22.53.22H19.5a3 3 0 013 3v1.146A4.483 4.483 0 0019.5 9h-15a4.483 4.483 0 00-3 1.146z" />
+            </svg>
+          </div>
+        `;
+      } else {
+        const domain = extractDomain(item.url || '');
+        const faviconUrl = `https://www.google.com/s2/favicons?sz=128&domain=${encodeURIComponent(domain)}`;
+        innerVisual = `
+          <div class="flex flex-col items-center justify-center w-full h-full p-2 gap-1.5">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden shadow-inner" style="background-color: ${colorObj.bg};">
+              <img src="${faviconUrl}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" class="w-6 h-6 object-contain rounded-full" alt="" />
+              <svg style="display:none; color: ${colorObj.hex};" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+              </svg>
+            </div>
+            <span class="text-[10px] px-2 py-0.5 rounded-md truncate max-w-[90%]" style="background-color: var(--pill-bg); color: var(--text-secondary);">
+              ${escapeHtml(domain)}
+            </span>
+          </div>
+        `;
+      }
+
+      // კლიკის მოქმედება (ფოლდერის გახსნა ან ლინკზე გადასვლა)
+      const clickAttr = isFolder
+        ? `onclick="openFolder('${item.id}')"`
+        : `onclick="openExternalLink('${escapeHtml(item.url || '')}')"`;
+
+      return `
+        <div class="flex flex-col items-center select-none group">
+          <div ${clickAttr} class="square-box theme-card cursor-pointer shadow-sm">
+            ${innerVisual}
+
+            <!-- ზედა მარჯვენა '...' რედაქტირების ღილაკი -->
+            <button
+              type="button"
+              onclick="event.stopPropagation(); openEditModal('${item.id}')"
+              title="რედაქტირება / ფოტოს დამატება"
+              class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center backdrop-blur-md transition-opacity opacity-85 hover:opacity-100 cursor-pointer"
+              style="background-color: rgba(24, 28, 25, 0.72); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.08);"
+            >
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                <circle cx="6" cy="12" r="1.8" />
+                <circle cx="12" cy="12" r="1.8" />
+                <circle cx="18" cy="12" r="1.8" />
+              </svg>
+            </button>
+
+            <!-- ქვედა მარჯვენა რაოდენობის ბეჯი (თუ ფოლდერში არის ელემენტები) -->
+            ${isFolder && childCount > 0 ? `
+              <span class="absolute bottom-1.5 right-1.5 min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center shadow"
+                style="background-color: rgba(24, 28, 25, 0.85); color: #f1f5f2; border: 1px solid rgba(255,255,255,0.1);">
+                ${childCount}
+              </span>
+            ` : ''}
+          </div>
+
+          <!-- სათაური -->
+          <span ${clickAttr} class="mt-2 text-xs sm:text-[13px] font-medium text-center line-clamp-1 w-full px-0.5 cursor-pointer">
+            ${escapeHtml(item.title)}
+          </span>
+
+          <!-- ლაიქების აბი (♡ 0) -->
+          <button
+            type="button"
+            onclick="incrementLike('${item.id}')"
+            class="mt-1.5 theme-pill px-2.5 py-0.5 rounded-full text-[11px] font-medium flex items-center gap-1 cursor-pointer hover:border-emerald-500/50 active:scale-95 transition-transform"
+          >
+            <svg class="w-3 h-3 ${likes > 0 ? 'text-rose-500 fill-rose-500' : ''}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+            </svg>
+            <span>${likes}</span>
+          </button>
+        </div>
+      `;
+    }
+
+    /**
+     * 7. ინტერაქციები: ლაიქი, ბადის ზომა, დღე/ღამე, გაზიარება
+     */
+    function findItemByIdRecursive(list, id) {
+      for (const item of list) {
+        if (item.id === id) return item;
+        if (item.type === 'folder' && Array.isArray(item.items)) {
+          const found = findItemByIdRecursive(item.items, id);
+          if (found) return found;
+        }
+      }
+      return null;
+    }
+
+    function incrementLike(itemId) {
+      const item = findItemByIdRecursive(appState.items, itemId);
+      if (item) {
+        item.likes = (item.likes || 0) + 1;
+        syncState();
+        render();
+      }
+    }
+
+    function openExternalLink(url) {
+      if (!url) return;
+      window.open(normalizeUrl(url), '_blank', 'noopener,noreferrer');
+    }
+
+    function handleSearch(val) {
+      appState.searchQuery = val;
+      render();
+    }
+
+    // ბადის სვეტების შეცვლა: 4 -> 3 -> 2 -> 4
+    function cycleGridCols() {
+      if (appState.gridCols === 4) appState.gridCols = 3;
+      else if (appState.gridCols === 3) appState.gridCols = 2;
+      else appState.gridCols = 4;
+
+      applyGridColsUI();
+      syncState();
+    }
+
+    function applyGridColsUI() {
+      const gridEl = document.getElementById('itemsGrid');
+      const labelEl = document.getElementById('gridColLabel');
+      gridEl.classList.remove('cols-3', 'cols-2');
+      if (appState.gridCols === 3) gridEl.classList.add('cols-3');
+      if (appState.gridCols === 2) gridEl.classList.add('cols-2');
+      labelEl.textContent = appState.gridCols;
+    }
+
+    // დღის და ღამის რეჟიმი
+    function toggleTheme() {
+      appState.theme = appState.theme === 'dark' ? 'light' : 'dark';
+      applyThemeUI();
+      syncState();
+    }
+
+    function applyThemeUI() {
+      const htmlEl = document.documentElement;
+      const sunIcon = document.getElementById('sunIcon');
+      const moonIcon = document.getElementById('moonIcon');
+
+      if (appState.theme === 'light') {
+        htmlEl.classList.add('light-theme');
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+      } else {
+        htmlEl.classList.remove('light-theme');
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
+      }
+    }
+
+    // ლინკის კოპირება (execCommand fallback-ით iFrame-სთვის)
+    function copyShareLink() {
+      syncState();
+      const fullUrl = window.location.href;
+      const tempInput = document.createElement('input');
+      tempInput.value = fullUrl;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      tempInput.setSelectionRange(0, 99999);
+      try {
+        document.execCommand('copy');
+        showToast('იმპერიის ლინკი დაკოპირდა! შეგიძლია გაუგზავნო სხვას');
+      } catch (err) {
+        showToast('ლინკი მზადაა მისამართის ზოლში');
+      }
+      document.body.removeChild(tempInput);
+    }
+
+    function resetToBlank() {
+      appState.items = [];
+      appState.currentPath = [];
+      document.getElementById('sharedNotice').classList.add('hidden');
+      syncState();
+      render();
+      showToast('გვერდი გასუფთავდა — შეგიძლია ააწყო ახალი');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2800);
+    }
+
+    /**
+     * 8. მოდალური ფანჯარა (შექმნა, რედაქტირება, ლოკალური ფოტოს მიბმა, წაშლა)
+     */
+    function renderColorPalette() {
+      const wrap = document.getElementById('colorPalette');
+      wrap.innerHTML = FOLDER_COLORS.map(c => `
+        <button
+          type="button"
+          onclick="selectPaletteColor('${c.id}')"
+          class="w-7 h-7 rounded-full transition-transform cursor-pointer flex items-center justify-center ${selectedColor === c.id ? 'scale-115 ring-2 ring-offset-2 ring-emerald-500' : 'opacity-80 hover:opacity-100'}"
+          style="background-color: ${c.hex};"
+        >
+          ${selectedColor === c.id ? '<span class="w-2 h-2 rounded-full bg-white"></span>' : ''}
+        </button>
+      `).join('');
+    }
+
+    function selectPaletteColor(colorId) {
+      selectedColor = colorId;
+      renderColorPalette();
+    }
+
+    function setModalType(type) {
+      modalType = type;
+      const folderBtn = document.getElementById('typeFolderBtn');
+      const linkBtn = document.getElementById('typeLinkBtn');
+      const urlWrap = document.getElementById('urlFieldWrap');
+      const urlInput = document.getElementById('itemUrlInput');
+
+      if (type === 'folder') {
+        folderBtn.className = 'py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer bg-emerald-600 text-white';
+        linkBtn.className = 'py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer';
+        linkBtn.style.color = 'var(--text-secondary)';
+        urlWrap.classList.add('hidden');
+        urlInput.required = false;
+      } else {
+        linkBtn.className = 'py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer bg-emerald-600 text-white';
+        folderBtn.className = 'py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer';
+        folderBtn.style.color = 'var(--text-secondary)';
+        urlWrap.classList.remove('hidden');
+        urlInput.required = true;
+      }
+    }
+
+    function openCreateModal() {
+      editingItemId = null;
+      pendingLocalPhotoData = undefined;
+      selectedColor = FOLDER_COLORS[Math.floor(Math.random() * FOLDER_COLORS.length)].id;
+
+      document.getElementById('modalTitle').textContent = appState.currentPath.length > 0 ? 'ქვეკატეგორია ან ლინკი' : 'ახალი კატეგორია ან ლინკი';
+      document.getElementById('typeSelectorWrap').classList.remove('hidden');
+      document.getElementById('deleteItemBtn').classList.add('hidden');
+      document.getElementById('itemTitleInput').value = '';
+      document.getElementById('itemUrlInput').value = '';
+      document.getElementById('localPhotoInput').value = '';
+
+      updatePhotoPreviewUI(null);
+      setModalType(appState.currentPath.length > 0 ? 'link' : 'folder');
+      renderColorPalette();
+
+      const modal = document.getElementById('itemModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      setTimeout(() => document.getElementById('itemTitleInput').focus(), 60);
+    }
+
+    function openEditModal(itemId) {
+      const item = findItemByIdRecursive(appState.items, itemId);
+      if (!item) return;
+
+      editingItemId = item.id;
+      pendingLocalPhotoData = undefined;
+      selectedColor = item.color || 'emerald';
+
+      document.getElementById('modalTitle').textContent = 'რედაქტირება';
+      document.getElementById('typeSelectorWrap').classList.add('hidden');
+      document.getElementById('deleteItemBtn').classList.remove('hidden');
+      document.getElementById('itemTitleInput').value = item.title || '';
+      document.getElementById('itemUrlInput').value = item.url || '';
+      document.getElementById('localPhotoInput').value = '';
+
+      setModalType(item.type);
+      updatePhotoPreviewUI(localPhotoCache[item.id] || null);
+      renderColorPalette();
+
+      const modal = document.getElementById('itemModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('itemModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function handleLocalPhotoSelect(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        const compressedDataUrl = await compressImageFile(file);
+        pendingLocalPhotoData = compressedDataUrl;
+        updatePhotoPreviewUI(compressedDataUrl);
+      } catch (e) {
+        showToast('ფოტოს დამუშავება ვერ მოხერხდა');
+      }
+    }
+
+    function clearLocalPhotoSelection() {
+      pendingLocalPhotoData = null;
+      document.getElementById('localPhotoInput').value = '';
+      updatePhotoPreviewUI(null);
+    }
+
+    function updatePhotoPreviewUI(dataUrl) {
+      const box = document.getElementById('photoPreviewBox');
+      const removeBtn = document.getElementById('removePhotoBtn');
+
+      if (dataUrl) {
+        box.innerHTML = `<img src="${dataUrl}" class="w-full h-full object-cover" alt="პრევიუ" />`;
+        removeBtn.classList.remove('hidden');
+      } else {
+        box.innerHTML = `
+          <svg class="w-6 h-6 opacity-40" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+          </svg>
+        `;
+        removeBtn.classList.add('hidden');
+      }
+    }
+
+    async function saveItemForm(e) {
+      e.preventDefault();
+      const title = document.getElementById('itemTitleInput').value.trim();
+      const urlVal = document.getElementById('itemUrlInput').value.trim();
+      if (!title) return;
+
+      if (editingItemId) {
+        // არსებულის განახლება
+        const item = findItemByIdRecursive(appState.items, editingItemId);
+        if (item) {
+          item.title = title;
+          item.color = selectedColor;
+          if (item.type === 'link') {
+            item.url = normalizeUrl(urlVal);
+          }
+          if (pendingLocalPhotoData !== undefined) {
+            await saveLocalImageToDB(item.id, pendingLocalPhotoData);
+          }
+        }
+      } else {
+        // ახლის შექმნა
+        const newId = 'id_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+        const newItem = {
+          id: newId,
+          type: modalType,
+          title: title,
+          color: selectedColor,
+          likes: 0
+        };
+        if (modalType === 'folder') {
+          newItem.items = [];
+        } else {
+          newItem.url = normalizeUrl(urlVal);
+        }
+
+        const targetList = getActiveItemsList();
+        targetList.push(newItem);
+
+        if (pendingLocalPhotoData) {
+          await saveLocalImageToDB(newId, pendingLocalPhotoData);
+        }
+      }
+
+      syncState();
+      render();
+      closeModal();
+    }
+
+    async function deleteCurrentEditingItem() {
+      if (!editingItemId) return;
+      removeItemFromTree(appState.items, editingItemId);
+      await saveLocalImageToDB(editingItemId, null);
+      syncState();
+      render();
+      closeModal();
+      showToast('წაიშალა');
+    }
+
+    function removeItemFromTree(list, id) {
+      const idx = list.findIndex(x => x.id === id);
+      if (idx !== -1) {
+        list.splice(idx, 1);
+        return true;
+      }
+      for (const item of list) {
+        if (item.type === 'folder' && Array.isArray(item.items)) {
+          if (removeItemFromTree(item.items, id)) return true;
+        }
+      }
+      return false;
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // გაშვება ჩატვირთვისას
+    window.addEventListener('DOMContentLoaded', async () => {
+      await initIndexedDB();
+      loadInitialState();
+      render();
+    });
+
+    // თუ მომხმარებელმა ბრაუზერში ხელით შეცვალა hash ლინკი
+    window.addEventListener('hashchange', () => {
+      if (window.location.hash && window.location.hash.startsWith('#data=')) {
+        const fromUrl = decodeStateFromHash(window.location.hash);
+        if (fromUrl) {
+          appState.items = fromUrl;
+          appState.currentPath = [];
+          render();
+        }
+      }
+    });
+  </script>
 </body>
 </html>
